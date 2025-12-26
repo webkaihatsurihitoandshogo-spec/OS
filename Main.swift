@@ -1,1 +1,3 @@
 Import SwiftUI
+
+@main
