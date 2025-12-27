@@ -2,217 +2,162 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>SwiftUI OS Simulation</title>
+    <title>My AI-Powered OS</title>
     <style>
         :root {
-            /* SwiftUIの.ultraThinMaterialを再現する変数 */
             --glass-bg: rgba(255, 255, 255, 0.2);
             --glass-blur: blur(25px);
             --border-white: rgba(255, 255, 255, 0.3);
+            /* ★ここにアップロードした画像を設定 */
+            --bg-image: url('IMG_1875.jpeg'); 
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black; /* 起動時は黒 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-            transition: background 1.5s ease-in-out;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: black;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; font-family: -apple-system, sans-serif;
         }
 
-        /* --- 起動画面（Startupscreen.swift） --- */
-        #startup-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-            transition: opacity 1s ease-out;
-            z-index: 10;
-        }
-
-        .apple-logo {
-            font-size: 80px;
-            color: white;
-            opacity: 0;
-            transition: opacity 1.5s ease-in;
-        }
-
-        .progress-bar {
-            width: 200px;
-            height: 6px;
-            background: rgba(128, 128, 128, 0.5);
-            border-radius: 100px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: white;
-            transition: width 3s linear;
-        }
-
-        /* --- ツールバー（Thefoundationofthetoolbar.swift） --- */
+        /* デスクトップ環境（壁紙レイヤー） */
         #desktop-environment {
-            position: fixed;
-            inset: 0;
-            display: none; /* 最初は非表示 */
-            background: linear-gradient(135deg, #1e3a8a, #581c87); /* デスクトップ壁紙 */
-            justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 20px;
-            opacity: 0;
-            transition: opacity 1s ease-in;
+            position: fixed; inset: 0; display: none;
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            justify-content: center; align-items: flex-end;
+            padding-bottom: 20px; opacity: 0; transition: opacity 1s, background-image 0.5s;
         }
 
+        /* 起動画面（Startupscreen.swift） */
+        #startup-container { display: flex; flex-direction: column; align-items: center; gap: 30px; transition: 1s; }
+        .apple-logo { font-size: 80px; color: white; opacity: 0; transition: 1.5s; }
+        .progress-bar { width: 200px; height: 6px; background: rgba(128,128,128,0.5); border-radius: 100px; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: white; transition: 3s linear; }
+
+        /* 設定ウィンドウ */
+        .window {
+            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            width: 350px; background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 18px; border: 0.5px solid var(--border-white);
+            color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            display: none; flex-direction: column; overflow: hidden; z-index: 100;
+        }
+        .window-header { padding: 15px; background: rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .window-content { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .setting-item { display: flex; flex-direction: column; gap: 5px; }
+        input[type="range"] { width: 100%; accent-color: #007aff; }
+        .wallpaper-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .wallpaper-btn { height: 40px; border-radius: 8px; border: 1px solid white; cursor: pointer; background-size: cover; background-position: center; }
+
+        /* ツールバー */
         .toolbar-view {
-            /* .ultraThinMaterial の再現 */
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            
-            /* padding / spacing: 15 / RoundedRectangle */
-            padding: 10px 20px;
-            display: flex;
-            gap: 15px;
-            border-radius: 20px;
-            
-            /* .stroke(Color.white.opacity(0.3), lineWidth: 0.5) */
+            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            padding: 10px 20px; display: flex; gap: 15px; border-radius: 20px;
             border: 0.5px solid var(--border-white);
-            
-            /* .shadow */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
         .icon {
-            width: 40px;
-            height: 40px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            cursor: pointer;
-            
-            /* .scaleEffect(1.0) & .withAnimation(.spring()) */
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+            width: 40px; height: 40px; padding: 8px; background: rgba(255,255,255,0.1);
+            border-radius: 10px; color: white; display: flex; justify-content: center;
+            align-items: center; font-size: 24px; cursor: pointer; transition: 0.3s;
         }
+        .icon:hover { transform: scale(1.2) translateY(-5px); }
 
-        /* .onHover { ... scaleEffect(1.2) } */
-        .icon:hover {
-            transform: scale(1.2);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .icon:active {
-            transform: scale(0.9);
-        }
-
-        /* メモリモニター（2.5GB制限用） */
-        #mem-info {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            color: white;
-            font-size: 12px;
-            background: rgba(0,0,0,0.3);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: none;
-        }
+        #mem-info { position: fixed; top: 20px; right: 20px; color: white; font-size: 12px; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. 起動画面 -->
     <div id="startup-container">
         <div id="logo" class="apple-logo"></div>
-        <div class="progress-bar">
-            <div id="bar" class="progress-fill"></div>
-        </div>
+        <div class="progress-bar"><div id="bar" class="progress-fill"></div></div>
     </div>
 
-    <!-- 2. ツールバーとデスクトップ -->
     <div id="desktop-environment">
-        <div id="mem-info">Memory Usage: <span id="mem-val">0</span> / 2500MB</div>
+        <div id="mem-info">Memory: <span id="mem-val">0</span> / <span id="mem-max-display">2500</span>MB</div>
+
+        <div id="settings-window" class="window">
+            <div class="window-header">
+                <span>Settings</span>
+                <span style="cursor:pointer" onclick="toggleSettings()">✕</span>
+            </div>
+            <div class="window-content">
+                <div class="setting-item">
+                    <label>Volume: <span id="vol-val">50</span>%</label>
+                    <input type="range" min="0" max="100" value="50" oninput="updateVol(this.value)">
+                </div>
+                <div class="setting-item">
+                    <label>Memory Limit: <span id="limit-val">2500</span>MB</label>
+                    <input type="range" min="500" max="5000" value="2500" step="100" oninput="updateLimit(this.value)">
+                </div>
+                <div class="setting-item">
+                    <label>Wallpaper</label>
+                    <div class="wallpaper-grid">
+                        <!-- AI壁紙ボタン -->
+                        <div class="wallpaper-btn" style="background-image: url('IMG_1875.jpeg');" onclick="setWP('IMG_1875.jpeg')"></div>
+                        <div class="wallpaper-btn" style="background: linear-gradient(135deg, #1e3a8a, #581c87);" onclick="setWP('linear-gradient(135deg, #1e3a8a, #581c87)', true)"></div>
+                        <div class="wallpaper-btn" style="background: linear-gradient(135deg, #065f46, #064e3b);" onclick="setWP('linear-gradient(135deg, #065f46, #064e3b)', true)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="toolbar-view">
-            <!-- icons リストの再現（絵文字で代用、必要に応じて画像へ） -->
-            <div class="icon" onclick="launch('Finder')">🗂️</div>
-            <div class="icon" onclick="launch('Terminal')">🐚</div>
-            <div class="icon" onclick="launch('Safari')">🌐</div>
-            <div class="icon" onclick="launch('Settings')">⚙️</div>
-            <div class="icon" onclick="launch('Folder')">📁</div>
+            <div class="icon">🗂️</div>
+            <div class="icon">🐚</div>
+            <div class="icon">🌐</div>
+            <div class="icon" onclick="toggleSettings()">⚙️</div>
+            <div class="icon">📁</div>
         </div>
     </div>
 
-     <script>
-        window.onload = function() {
+    <script>
+        let maxMemory = 2500;
+        let usedMemory = 0;
+
+        window.onload = async () => {
             const logo = document.getElementById('logo');
             const bar = document.getElementById('bar');
             const startup = document.getElementById('startup-container');
             const desktop = document.getElementById('desktop-environment');
-            const memInfo = document.getElementById('mem-info');
 
-            console.log("OS起動シーケンス開始...");
+            setTimeout(() => logo.style.opacity = '1', 100);
+            setTimeout(() => bar.style.width = '100%', 100);
 
-            // 1. ロゴとバーのアニメーションを開始
+            await new Promise(r => setTimeout(r, 4000));
+            startup.style.opacity = '0';
             setTimeout(() => {
-                logo.style.opacity = '1';
-                bar.style.width = '100%';
-            }, 100);
-
-            // 2. バーの移動時間（3000ms）＋余裕を持って 3500ms 後に切り替えを実行
-            setTimeout(() => {
-                console.log("ロード完了。デスクトップへ移行します。");
-                
-                // 起動画面をフェードアウト
-                startup.style.opacity = '0';
-                
-                // フェードアウトの完了（1秒）を待ってから表示を切り替え
-                setTimeout(() => {
-                    startup.style.display = 'none';
-                    
-                    // デスクトップを表示
-                    desktop.style.display = 'flex';
-                    memInfo.style.display = 'block';
-                    
-                    // ツールバーをふわっと出す
-                    setTimeout(() => {
-                        desktop.style.opacity = '1';
-                    }, 50);
-                    
-                    updateMemory(120); // 初期メモリ使用量を表示
-                }, 1000);
-            }, 3500); 
+                startup.style.display = 'none';
+                desktop.style.display = 'flex';
+                setTimeout(() => desktop.style.opacity = '1', 50);
+                updateMemory(120);
+            }, 1000);
         };
 
-        // アプリ起動時の関数
-        function launch(app) {
-            console.log(`${app} を起動しました`);
-            updateMemory(50);
+        function toggleSettings() {
+            const win = document.getElementById('settings-window');
+            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+            updateMemory(10);
         }
 
-        // メモリ管理関数
+        function setWP(value, isGradient = false) {
+            const bgValue = isGradient ? value : `url('${value}')`;
+            document.documentElement.style.setProperty('--bg-image', bgValue);
+        }
+
+        function updateVol(v) { document.getElementById('vol-val').innerText = v; }
+        function updateLimit(v) {
+            maxMemory = v;
+            document.getElementById('limit-val').innerText = v;
+            document.getElementById('mem-max-display').innerText = v;
+        }
+
         function updateMemory(add) {
-            const val = document.getElementById('mem-val');
-            let current = parseFloat(val.innerText) || 0;
-            current += add;
-            val.innerText = current;
-            if(current > 2500) {
-                alert("2.5GB制限を超えました。メモリを解放します。");
-                location.reload();
-            }
+            usedMemory += add;
+            document.getElementById('mem-val').innerText = usedMemory.toFixed(0);
+            if(usedMemory > maxMemory) console.warn("Memory Limit Exceeded!");
         }
     </script>
-
 </body>
 </html>
