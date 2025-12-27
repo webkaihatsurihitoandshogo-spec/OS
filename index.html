@@ -1,1 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>SwiftUI Boot Simulation</title>
+    <style>
+        /* 1. Color.black.edgesIgnoringSafeArea(.all) の再現 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* 2. ZStack / VStack(spacing: 30) の再現 */
+        .boot-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* spacing: 30 */
+        }
+
+        /* 3. Image(systemName: "applelogo") の再現 */
+        .apple-logo {
+            font-size: 80px;
+            color: white;
+            /* @State logoOpacity の初期状態 */
+            opacity: 0; 
+            /* withAnimation(.easeIn(duration: 1.5)) の再現 */
+            transition: opacity 1.5s ease-in;
+        }
+
+        /* 4. プログレスバー（Capsule）の再現 */
+        .progress-container {
+            position: relative;
+            width: 200px;
+            height: 6px;
+        }
+
+        /* Capsule().fill(Color.gray.opacity(0.5)) */
+        .progress-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(128, 128, 128, 0.5);
+            border-radius: 100px; /* Capsule */
+        }
+
+        /* Capsule().fill(Color.white) */
+        .progress-fill {
+            position: absolute;
+            width: 0%; /* @State progress の初期状態 */
+            height: 100%;
+            background-color: white;
+            border-radius: 100px;
+            /* withAnimation(.linear(duration: 3.0)) の再現 */
+            transition: width 3.0s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="boot-view">
+        <!-- ロゴ部分（ここでは文字ですが、画像に置き換え可能です） -->
+        <div id="logo" class="apple-logo"></div>
+
+        <!-- プログレスバー部分 -->
+        <div class="progress-container">
+            <div class="progress-bg"></div>
+            <div id="bar" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <script>
+        // Swiftの .onAppear 処理を再現
+        window.onload = () => {
+            const logo = document.getElementById('logo');
+            const bar = document.getElementById('bar');
+
+            // 1. ロゴをフェードイン (logoOpacity = 1.0)
+            setTimeout(() => {
+                logo.style.opacity = '1.0';
+            }, 100);
+
+            // 2. バーを徐々に伸ばす (progress = 1.0)
+            setTimeout(() => {
+                bar.style.width = '100%';
+            }, 100);
+
+            // 3. アニメーション完了後に次のプログラム（ツールバー）へ
+            // ロード3秒 + 余裕を持って計4秒後に次のステップへ
+            setTimeout(() => {
+                console.log("Startupscreen.swift 終了。ツールバーを読み込みます...");
+                // ここに Thefoundationofthetoolbar.swift を呼び出す処理を書く
+            }, 4000);
+        };
+    </script>
+</body>
+</html>
 
