@@ -2,105 +2,198 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>SwiftUI Boot Simulation</title>
+    <title>SwiftUI OS Simulation</title>
     <style>
-        /* 1. Color.black.edgesIgnoringSafeArea(.all) の再現 */
+        :root {
+            /* SwiftUIの.ultraThinMaterialを再現する変数 */
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --glass-blur: blur(25px);
+            --border-white: rgba(255, 255, 255, 0.3);
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: black;
+            background-color: black; /* 起動時は黒 */
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            transition: background 1.5s ease-in-out;
         }
 
-        /* 2. ZStack / VStack(spacing: 30) の再現 */
-        .boot-view {
+        /* --- 起動画面（Startupscreen.swift） --- */
+        #startup-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px; /* spacing: 30 */
+            gap: 30px;
+            transition: opacity 1s ease-out;
+            z-index: 10;
         }
 
-        /* 3. Image(systemName: "applelogo") の再現 */
         .apple-logo {
             font-size: 80px;
             color: white;
-            /* @State logoOpacity の初期状態 */
-            opacity: 0; 
-            /* withAnimation(.easeIn(duration: 1.5)) の再現 */
+            opacity: 0;
             transition: opacity 1.5s ease-in;
         }
 
-        /* 4. プログレスバー（Capsule）の再現 */
-        .progress-container {
-            position: relative;
+        .progress-bar {
             width: 200px;
             height: 6px;
-        }
-
-        /* Capsule().fill(Color.gray.opacity(0.5)) */
-        .progress-bg {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(128, 128, 128, 0.5);
-            border-radius: 100px; /* Capsule */
-        }
-
-        /* Capsule().fill(Color.white) */
-        .progress-fill {
-            position: absolute;
-            width: 0%; /* @State progress の初期状態 */
-            height: 100%;
-            background-color: white;
+            background: rgba(128, 128, 128, 0.5);
             border-radius: 100px;
-            /* withAnimation(.linear(duration: 3.0)) の再現 */
-            transition: width 3.0s linear;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: white;
+            transition: width 3s linear;
+        }
+
+        /* --- ツールバー（Thefoundationofthetoolbar.swift） --- */
+        #desktop-environment {
+            position: fixed;
+            inset: 0;
+            display: none; /* 最初は非表示 */
+            background: linear-gradient(135deg, #1e3a8a, #581c87); /* デスクトップ壁紙 */
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+
+        .toolbar-view {
+            /* .ultraThinMaterial の再現 */
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            
+            /* padding / spacing: 15 / RoundedRectangle */
+            padding: 10px 20px;
+            display: flex;
+            gap: 15px;
+            border-radius: 20px;
+            
+            /* .stroke(Color.white.opacity(0.3), lineWidth: 0.5) */
+            border: 0.5px solid var(--border-white);
+            
+            /* .shadow */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            
+            /* .scaleEffect(1.0) & .withAnimation(.spring()) */
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+        }
+
+        /* .onHover { ... scaleEffect(1.2) } */
+        .icon:hover {
+            transform: scale(1.2);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .icon:active {
+            transform: scale(0.9);
+        }
+
+        /* メモリモニター（2.5GB制限用） */
+        #mem-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="boot-view">
-        <!-- ロゴ部分（ここでは文字ですが、画像に置き換え可能です） -->
+    <!-- 1. 起動画面 -->
+    <div id="startup-container">
         <div id="logo" class="apple-logo"></div>
-
-        <!-- プログレスバー部分 -->
-        <div class="progress-container">
-            <div class="progress-bg"></div>
+        <div class="progress-bar">
             <div id="bar" class="progress-fill"></div>
         </div>
     </div>
 
+    <!-- 2. ツールバーとデスクトップ -->
+    <div id="desktop-environment">
+        <div id="mem-info">Memory Usage: <span id="mem-val">0</span> / 2500MB</div>
+        <div class="toolbar-view">
+            <!-- icons リストの再現（絵文字で代用、必要に応じて画像へ） -->
+            <div class="icon" onclick="launch('Finder')">🗂️</div>
+            <div class="icon" onclick="launch('Terminal')">🐚</div>
+            <div class="icon" onclick="launch('Safari')">🌐</div>
+            <div class="icon" onclick="launch('Settings')">⚙️</div>
+            <div class="icon" onclick="launch('Folder')">📁</div>
+        </div>
+    </div>
+
     <script>
-        // Swiftの .onAppear 処理を再現
-        window.onload = () => {
+        window.onload = async () => {
             const logo = document.getElementById('logo');
             const bar = document.getElementById('bar');
+            const startup = document.getElementById('startup-container');
+            const desktop = document.getElementById('desktop-environment');
+            const memInfo = document.getElementById('mem-info');
 
-            // 1. ロゴをフェードイン (logoOpacity = 1.0)
-            setTimeout(() => {
-                logo.style.opacity = '1.0';
-            }, 100);
+            // --- 起動シーケンス (Startupscreen.swift) ---
+            setTimeout(() => logo.style.opacity = '1', 100);
+            setTimeout(() => bar.style.width = '100%', 100);
 
-            // 2. バーを徐々に伸ばす (progress = 1.0)
-            setTimeout(() => {
-                bar.style.width = '100%';
-            }, 100);
-
-            // 3. アニメーション完了後に次のプログラム（ツールバー）へ
-            // ロード3秒 + 余裕を持って計4秒後に次のステップへ
-            setTimeout(() => {
-                console.log("Startupscreen.swift 終了。ツールバーを読み込みます...");
-                // ここに Thefoundationofthetoolbar.swift を呼び出す処理を書く
-            }, 4000);
+            // 4秒後にデスクトップへ移行
+            await new Promise(r => setTimeout(r, 4000));
+            startup.style.opacity = '0';
+            
+            await new Promise(r => setTimeout(r, 1000));
+            startup.style.display = 'none';
+            
+            // --- ツールバー展開 (ToolbarView.swift) ---
+            desktop.style.display = 'flex';
+            memInfo.style.display = 'block';
+            setTimeout(() => desktop.style.opacity = '1', 100);
+            
+            // 初期メモリ消費のシミュレート
+            updateMemory(120); 
         };
+
+        function launch(app) {
+            console.log(`${app} を起動しました`);
+            updateMemory(50); // アプリ起動ごとに50MB消費
+        }
+
+        function updateMemory(add) {
+            const val = document.getElementById('mem-val');
+            let current = parseFloat(val.innerText);
+            current += add;
+            val.innerText = current;
+            if(current > 2500) alert("CRITICAL: Memory Limit Exceeded!");
+        }
     </script>
 </body>
 </html>
-
