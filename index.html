@@ -154,46 +154,65 @@
         </div>
     </div>
 
-    <script>
-        window.onload = async () => {
+     <script>
+        window.onload = function() {
             const logo = document.getElementById('logo');
             const bar = document.getElementById('bar');
             const startup = document.getElementById('startup-container');
             const desktop = document.getElementById('desktop-environment');
             const memInfo = document.getElementById('mem-info');
 
-            // --- 起動シーケンス (Startupscreen.swift) ---
-            setTimeout(() => logo.style.opacity = '1', 100);
-            setTimeout(() => bar.style.width = '100%', 100);
+            console.log("OS起動シーケンス開始...");
 
-            // 4秒後にデスクトップへ移行
-            await new Promise(r => setTimeout(r, 4000));
-            startup.style.opacity = '0';
-            
-            await new Promise(r => setTimeout(r, 1000));
-            startup.style.display = 'none';
-            
-            // --- ツールバー展開 (ToolbarView.swift) ---
-            desktop.style.display = 'flex';
-            memInfo.style.display = 'block';
-            setTimeout(() => desktop.style.opacity = '1', 100);
-            
-            // 初期メモリ消費のシミュレート
-            updateMemory(120); 
+            // 1. ロゴとバーのアニメーションを開始
+            setTimeout(() => {
+                logo.style.opacity = '1';
+                bar.style.width = '100%';
+            }, 100);
+
+            // 2. バーの移動時間（3000ms）＋余裕を持って 3500ms 後に切り替えを実行
+            setTimeout(() => {
+                console.log("ロード完了。デスクトップへ移行します。");
+                
+                // 起動画面をフェードアウト
+                startup.style.opacity = '0';
+                
+                // フェードアウトの完了（1秒）を待ってから表示を切り替え
+                setTimeout(() => {
+                    startup.style.display = 'none';
+                    
+                    // デスクトップを表示
+                    desktop.style.display = 'flex';
+                    memInfo.style.display = 'block';
+                    
+                    // ツールバーをふわっと出す
+                    setTimeout(() => {
+                        desktop.style.opacity = '1';
+                    }, 50);
+                    
+                    updateMemory(120); // 初期メモリ使用量を表示
+                }, 1000);
+            }, 3500); 
         };
 
+        // アプリ起動時の関数
         function launch(app) {
             console.log(`${app} を起動しました`);
-            updateMemory(50); // アプリ起動ごとに50MB消費
+            updateMemory(50);
         }
 
+        // メモリ管理関数
         function updateMemory(add) {
             const val = document.getElementById('mem-val');
-            let current = parseFloat(val.innerText);
+            let current = parseFloat(val.innerText) || 0;
             current += add;
             val.innerText = current;
-            if(current > 2500) alert("CRITICAL: Memory Limit Exceeded!");
+            if(current > 2500) {
+                alert("2.5GB制限を超えました。メモリを解放します。");
+                location.reload();
+            }
         }
     </script>
+
 </body>
 </html>
